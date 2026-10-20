@@ -4,15 +4,18 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.wolfhausgames.treeruns.TreeRunsPlugin;
+import com.wolfhausgames.treeruns.data.DefaultRoute;
 import com.wolfhausgames.treeruns.data.Patch;
 import com.wolfhausgames.treeruns.data.PatchKind;
 import com.wolfhausgames.treeruns.data.TreeType;
 import com.wolfhausgames.treeruns.state.UnlockTracker;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -27,6 +30,7 @@ import net.runelite.client.config.ConfigManager;
 public class PlanManager
 {
 	private static final String PLAN_KEY = "plan";
+	private static final String ROUTE_KEY = "route";
 	private static final Type PLAN_TYPE = new TypeToken<Map<PatchKind, CategoryPlan>>()
 	{
 	}.getType();
@@ -36,6 +40,9 @@ public class PlanManager
 	private final Gson gson;
 
 	private Map<PatchKind, CategoryPlan> categories = new EnumMap<>(PatchKind.class);
+	/** The player's order, or null to use {@link DefaultRoute}. */
+	@Nullable
+	private List<Patch> customRoute;
 
 	@Inject
 	PlanManager(ConfigManager configManager, UnlockTracker unlockTracker, Gson gson)
@@ -49,6 +56,7 @@ public class PlanManager
 	public synchronized void load()
 	{
 		categories = new EnumMap<>(PatchKind.class);
+		customRoute = loadRoute();
 		final String json = configManager.getRSProfileConfiguration(TreeRunsPlugin.CONFIG_GROUP, PLAN_KEY);
 		if (json == null)
 		{
@@ -214,6 +222,111 @@ public class PlanManager
 	{
 		final CategoryPlan plan = get(patch.getKind());
 		return plan.getTree() != null && plan.isIncluded(patch) && unlockTracker.isUnlocked(patch);
+	}
+
+	/**
+	 * Every patch in run order. Patches missing from a saved order (e.g. added in an update)
+	 * are placed after the patch that precedes them in the default order.
+	 */
+	public synchronized List<Patch> getRoute()
+	{
+		if (customRoute == null)
+		{
+			return DefaultRoute.ORDER;
+		}
+
+		final List<Patch> route = new ArrayList<>(customRoute);
+		for (int i = 0; i < DefaultRoute.ORDER.size(); i++)
+		{
+			final Patch patch = DefaultRoute.ORDER.get(i);
+			if (route.contains(patch))
+			{
+				continue;
+			}
+			int insertAt = 0;
+			for (int j = i - 1; j >= 0; j--)
+			{
+				final int index = route.indexOf(DefaultRoute.ORDER.get(j));
+				if (index >= 0)
+				{
+					insertAt = index + 1;
+					break;
+				}
+			}
+			route.add(insertAt, patch);
+		}
+		return Collections.unmodifiableList(route);
+	}
+
+	/** The run order of the patches currently in the run. */
+	public synchronized List<Patch> getRunRoute()
+	{
+		final List<Patch> stops = new ArrayList<>();
+		for (Patch patch : getRoute())
+		{
+			if (isInRun(patch))
+			{
+				stops.add(patch);
+			}
+		}
+		return stops;
+	}
+
+	/**
+	 * Moves a patch to just before {@code before}, or to the end when {@code before} is null.
+	 * Patches not in the run keep their place relative to each other.
+	 */
+	public synchronized void moveInRoute(Patch patch, @Nullable Patch before)
+	{
+		if (patch == before)
+		{
+			return;
+		}
+		final List<Patch> route = new ArrayList<>(getRoute());
+		route.remove(patch);
+		final int index = before == null ? route.size() : route.indexOf(before);
+		route.add(index < 0 ? route.size() : index, patch);
+		customRoute = route;
+		configManager.setRSProfileConfiguration(TreeRunsPlugin.CONFIG_GROUP, ROUTE_KEY,
+			route.stream().map(Enum::name).collect(Collectors.joining(",")));
+	}
+
+	public synchronized void resetRoute()
+	{
+		customRoute = null;
+		configManager.unsetRSProfileConfiguration(TreeRunsPlugin.CONFIG_GROUP, ROUTE_KEY);
+	}
+
+	public synchronized boolean isRouteCustomized()
+	{
+		return customRoute != null;
+	}
+
+	@Nullable
+	private List<Patch> loadRoute()
+	{
+		final String saved = configManager.getRSProfileConfiguration(TreeRunsPlugin.CONFIG_GROUP, ROUTE_KEY);
+		if (saved == null || saved.isEmpty())
+		{
+			return null;
+		}
+		final List<Patch> route = new ArrayList<>();
+		for (String name : saved.split(","))
+		{
+			try
+			{
+				final Patch patch = Patch.valueOf(name);
+				if (!route.contains(patch))
+				{
+					route.add(patch);
+				}
+			}
+			catch (IllegalArgumentException ignored)
+			{
+				// a patch removed in an update
+			}
+		}
+		return route;
 	}
 
 	@Nullable

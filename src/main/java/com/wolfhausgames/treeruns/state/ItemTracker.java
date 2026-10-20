@@ -14,7 +14,7 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.game.ItemManager;
 
 /**
- * Counts what the player is carrying and what was in their bank the last time it was opened.
+ * Counts what the player is carrying (inventory and equipment) and what was in their bank the last time it was opened.
  * Noted items are counted as their unnoted form, since gardeners accept either.
  */
 @Singleton
@@ -27,6 +27,7 @@ public class ItemTracker
 	private final ConfigManager configManager;
 
 	private volatile Map<Integer, Integer> inventory = Collections.emptyMap();
+	private volatile Map<Integer, Integer> equipment = Collections.emptyMap();
 	private volatile Map<Integer, Integer> bank = Collections.emptyMap();
 	private volatile boolean bankKnown;
 
@@ -41,6 +42,7 @@ public class ItemTracker
 	public void load()
 	{
 		inventory = Collections.emptyMap();
+		equipment = Collections.emptyMap();
 		bank = deserialize(configManager.getRSProfileConfiguration(TreeRunsPlugin.CONFIG_GROUP, BANK_KEY));
 		bankKnown = configManager.getRSProfileConfiguration(TreeRunsPlugin.CONFIG_GROUP, BANK_SEEN_KEY) != null;
 	}
@@ -55,6 +57,11 @@ public class ItemTracker
 		if (containerId == InventoryID.INV)
 		{
 			inventory = count(container);
+			return true;
+		}
+		if (containerId == InventoryID.WORN)
+		{
+			equipment = count(container);
 			return true;
 		}
 		if (containerId == InventoryID.BANK)
@@ -81,9 +88,10 @@ public class ItemTracker
 		return bankKnown;
 	}
 
-	public int getInventoryCount(int itemId)
+	/** How many the player has in their inventory or equipped. */
+	public int getCarriedCount(int itemId)
 	{
-		return inventory.getOrDefault(itemId, 0);
+		return inventory.getOrDefault(itemId, 0) + equipment.getOrDefault(itemId, 0);
 	}
 
 	public int getBankCount(int itemId)

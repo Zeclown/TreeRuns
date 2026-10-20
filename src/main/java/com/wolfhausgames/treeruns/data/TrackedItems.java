@@ -16,10 +16,10 @@ public final class TrackedItems
 	{
 		final Set<Integer> items = new HashSet<>();
 		items.add(ItemID.COINS);
-		items.add(ItemID.SPADE);
-		items.add(ItemID.RAKE);
-		items.add(ItemID.SECATEURS);
-		items.add(ItemID.FAIRY_ENCHANTED_SECATEURS);
+		items.addAll(Tools.SPADE);
+		items.addAll(Tools.RAKE);
+		items.addAll(Tools.SECATEURS);
+		items.addAll(Tools.AXES);
 		for (TreeType tree : TreeType.values())
 		{
 			items.add(tree.getSaplingItemId());
