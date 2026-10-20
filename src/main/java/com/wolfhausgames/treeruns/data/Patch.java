@@ -1,3 +1,7 @@
+/*
+ * Patch regions, varbits and bounds are derived from RuneLite's Time Tracking plugin
+ * (BSD 2-Clause). See the third-party notices in LICENSE.
+ */
 package com.wolfhausgames.treeruns.data;
 
 import java.util.ArrayList;

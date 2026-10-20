@@ -8,3 +8,7 @@ nbactions.xml
 nb-configuration.xml
 nbproject/
 *.class
+# AI assistant files (kept locally, never committed)
+AGENTS.md
+CLAUDE.md
+.claude/

@@ -1,3 +1,7 @@
+/*
+ * Gardener payment detection is derived from RuneLite's Time Tracking plugin
+ * (BSD 2-Clause). See the third-party notices in LICENSE.
+ */
 package com.wolfhausgames.treeruns.run;
 
 import com.wolfhausgames.treeruns.data.ItemStack;
