@@ -24,9 +24,4 @@ public enum TreeState
 	private final String displayName;
 	/** For the narrow patch rows in the sidebar. */
 	private final String shortName;
-
-	public boolean isFullyGrown()
-	{
-		return this == READY || this == CHECKED || this == STUMP;
-	}
 }

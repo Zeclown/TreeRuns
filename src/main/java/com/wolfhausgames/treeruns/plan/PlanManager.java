@@ -8,6 +8,7 @@ import com.wolfhausgames.treeruns.data.DefaultRoute;
 import com.wolfhausgames.treeruns.data.Patch;
 import com.wolfhausgames.treeruns.data.PatchKind;
 import com.wolfhausgames.treeruns.data.TreeType;
+import com.wolfhausgames.treeruns.state.PatchTracker;
 import com.wolfhausgames.treeruns.state.UnlockTracker;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -37,6 +38,7 @@ public class PlanManager
 
 	private final ConfigManager configManager;
 	private final UnlockTracker unlockTracker;
+	private final PatchTracker patchTracker;
 	private final Gson gson;
 
 	private Map<PatchKind, CategoryPlan> categories = new EnumMap<>(PatchKind.class);
@@ -45,10 +47,11 @@ public class PlanManager
 	private List<Patch> customRoute;
 
 	@Inject
-	PlanManager(ConfigManager configManager, UnlockTracker unlockTracker, Gson gson)
+	PlanManager(ConfigManager configManager, UnlockTracker unlockTracker, PatchTracker patchTracker, Gson gson)
 	{
 		this.configManager = configManager;
 		this.unlockTracker = unlockTracker;
+		this.patchTracker = patchTracker;
 		this.gson = gson;
 	}
 
@@ -106,9 +109,31 @@ public class PlanManager
 	}
 
 	/**
-	 * How many spirit trees the player may have planted at once. Boosts count.
+	 * How many spirit patches can be in the run: the Farming level's limit on planted spirit trees,
+	 * minus the living spirit trees in patches the run won't touch.
 	 */
-	public int getSpiritTreeLimit()
+	public synchronized int getSpiritTreeLimit()
+	{
+		final int levelLimit = getSpiritTreeLevelLimit();
+		return levelLimit == Integer.MAX_VALUE ? levelLimit : Math.max(0, levelLimit - getSpiritTreesOutsideRun());
+	}
+
+	/** Living spirit trees in patches that aren't part of the run. */
+	public synchronized int getSpiritTreesOutsideRun()
+	{
+		int planted = 0;
+		for (Patch patch : Patch.forKind(PatchKind.SPIRIT))
+		{
+			if (!isTickedAndUsable(patch) && hasLivingTree(patch))
+			{
+				planted++;
+			}
+		}
+		return planted;
+	}
+
+	/** How many spirit trees the player may have planted at once. Boosts count. */
+	public int getSpiritTreeLevelLimit()
 	{
 		final int level = Math.max(unlockTracker.getFarmingLevel(), unlockTracker.getBoostedFarmingLevel());
 		if (level >= 99)
@@ -216,6 +241,20 @@ public class PlanManager
 			}
 		}
 		return count;
+	}
+
+	private boolean hasLivingTree(Patch patch)
+	{
+		switch (patchTracker.getStatus(patch).getState().getState())
+		{
+			case GROWING:
+			case READY:
+			case CHECKED:
+			case DISEASED:
+				return true;
+			default:
+				return false;
+		}
 	}
 
 	private boolean isTickedAndUsable(Patch patch)

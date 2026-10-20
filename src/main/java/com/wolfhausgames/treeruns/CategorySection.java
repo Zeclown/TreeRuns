@@ -1,6 +1,5 @@
 package com.wolfhausgames.treeruns;
 
-import com.wolfhausgames.treeruns.data.ItemStack;
 import com.wolfhausgames.treeruns.data.Patch;
 import com.wolfhausgames.treeruns.data.PatchKind;
 import com.wolfhausgames.treeruns.data.PatchState;
@@ -295,8 +294,7 @@ class CategorySection extends JPanel
 			box.setSelected(inRun);
 			box.setEnabled(categoryActive && unlocked && (inRun || !atSpiritLimit));
 			box.setForeground(unlocked ? Color.WHITE : ColorScheme.MEDIUM_GRAY_COLOR);
-			box.setToolTipText(unlocked && atSpiritLimit && !inRun
-				? "Your Farming level allows " + planManager.getSpiritTreeLimit() + " spirit tree(s) at once." : null);
+			box.setToolTipText(unlocked && atSpiritLimit && !inRun ? spiritLimitText() : null);
 
 			reason.setVisible(!unlocked);
 			reason.setText("<html>Requires " + String.join(", ", missing) + "</html>");
@@ -312,6 +310,13 @@ class CategorySection extends JPanel
 				status.setToolTipText(null);
 			}
 		}
+	}
+
+	private String spiritLimitText()
+	{
+		final int outside = planManager.getSpiritTreesOutsideRun();
+		return "Your Farming level allows " + planManager.getSpiritTreeLevelLimit() + " spirit tree(s) at once"
+			+ (outside > 0 ? ", and " + outside + " already growing elsewhere." : ".");
 	}
 
 	static void describe(PatchStatus status, JLabel label)

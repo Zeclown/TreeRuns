@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import lombok.Getter;
-import net.runelite.api.Skill;
 import net.runelite.api.gameval.ItemID;
 
 /**
@@ -92,17 +91,6 @@ public enum TreeType
 	public boolean isProtectable()
 	{
 		return !protectionPayment.isEmpty();
-	}
-
-	public int getGrowthMinutes()
-	{
-		return (stages - 1) * minutesPerStage;
-	}
-
-	/** Farming level needed to plant, boosts allowed. */
-	public Requirement getRequirement()
-	{
-		return Requirement.skill(Skill.FARMING, farmingLevel, true);
 	}
 
 	public static List<TreeType> forKind(PatchKind kind)

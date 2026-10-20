@@ -60,7 +60,7 @@ class ShoppingPanel extends JPanel
 
 		if (!lines.isEmpty())
 		{
-			add(note("Green: carried. Orange: in the bank. Red: missing.", ColorScheme.MEDIUM_GRAY_COLOR));
+			add(note("Green: carried or with the tool leprechaun. Orange: in the bank. Red: missing.", ColorScheme.MEDIUM_GRAY_COLOR));
 		}
 
 		revalidate();
@@ -74,7 +74,7 @@ class ShoppingPanel extends JPanel
 		row.setBorder(new EmptyBorder(4, 6, 4, 6));
 		row.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-		final Color color = line.isCarried() ? ColorScheme.PROGRESS_COMPLETE_COLOR
+		final Color color = line.isAtHand() ? ColorScheme.PROGRESS_COMPLETE_COLOR
 			: line.isAvailable() ? ColorScheme.PROGRESS_INPROGRESS_COLOR
 			: line.isOptional() ? ColorScheme.MEDIUM_GRAY_COLOR
 			: ColorScheme.PROGRESS_ERROR_COLOR;
@@ -90,6 +90,10 @@ class ShoppingPanel extends JPanel
 		{
 			have = "Have";
 		}
+		else if (line.isAtHand())
+		{
+			have = "Leprechaun";
+		}
 		else if (line.isAvailable())
 		{
 			have = "Bank " + line.getToWithdraw();
@@ -101,7 +105,9 @@ class ShoppingPanel extends JPanel
 		final JLabel status = new JLabel(have);
 		status.setFont(FontManager.getRunescapeSmallFont());
 		status.setForeground(color);
-		status.setToolTipText("Carrying " + line.getCarried() + ", " + line.getBanked() + " in the bank");
+		status.setToolTipText("Carrying " + line.getCarried()
+			+ (line.getStored() > 0 ? ", " + line.getStored() + " with the tool leprechaun" : "")
+			+ ", " + line.getBanked() + " in the bank");
 		row.add(status, BorderLayout.EAST);
 
 		final JPanel wrapper = new JPanel(new BorderLayout());

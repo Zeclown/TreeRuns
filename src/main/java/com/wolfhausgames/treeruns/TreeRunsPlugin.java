@@ -50,7 +50,7 @@ import net.runelite.client.util.ImageUtil;
 
 @Slf4j
 @PluginDescriptor(
-	name = "Tree Runs",
+	name = "Tree Run Planner",
 	description = "Plan and follow customizable farming tree runs",
 	tags = {"farming", "tree", "run", "helper"}
 )
@@ -118,11 +118,12 @@ public class TreeRunsPlugin extends Plugin
 	private NavigationButton navButton;
 	private int ticksUntilUnlockRefresh;
 
-	/** The patch the hint arrow and Shortest Path were last pointed at. */
+	/** The patch this plugin's hint arrow points at, or null if the arrow isn't ours. */
 	@Nullable
-	private Patch guidedPatch;
-	private boolean hintArrowSet;
-	private boolean shortestPathSet;
+	private Patch hintArrowPatch;
+	/** The patch Shortest Path was last sent to, or null if it hasn't been sent one. */
+	@Nullable
+	private Patch shortestPathPatch;
 
 	@Provides
 	TreeRunsConfig provideConfig(ConfigManager configManager)
@@ -137,7 +138,7 @@ public class TreeRunsPlugin extends Plugin
 
 		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "icon.png");
 		navButton = NavigationButton.builder()
-			.tooltip("Tree Runs")
+			.tooltip("Tree Run Planner")
 			.icon(icon)
 			.priority(7)
 			.panel(panel)
@@ -156,7 +157,7 @@ public class TreeRunsPlugin extends Plugin
 				sceneTracker.scan();
 			}
 		});
-		log.debug("Tree Runs started");
+		log.debug("Tree Run Planner started");
 	}
 
 	@Override
@@ -174,7 +175,7 @@ public class TreeRunsPlugin extends Plugin
 		sceneTracker.clear();
 		unlockTracker.clear();
 		navButton = null;
-		log.debug("Tree Runs stopped");
+		log.debug("Tree Run Planner stopped");
 	}
 
 	/** Starts a run over the current stops. Safe to call from any thread. */
@@ -230,9 +231,6 @@ public class TreeRunsPlugin extends Plugin
 			case LOGGED_IN:
 				// Quest and skill state arrive with the first ticks, so check on the next one.
 				ticksUntilUnlockRefresh = 0;
-				// The hint arrow is lost when a new area loads
-				hintArrowSet = false;
-				guidedPatch = null;
 				break;
 			case LOADING:
 				// Objects and NPCs spawn again once the new scene is loaded
@@ -265,6 +263,7 @@ public class TreeRunsPlugin extends Plugin
 		{
 			final WorldPoint location = player.getWorldLocation();
 			changed |= patchTracker.update(location);
+			changed |= itemTracker.refreshToolStore();
 			if (runSession.isActive() && runSession.onTick(location))
 			{
 				changed = true;
@@ -334,12 +333,8 @@ public class TreeRunsPlugin extends Plugin
 	{
 		if (CONFIG_GROUP.equals(event.getGroup()))
 		{
-			// Re-point (or clear) the hint arrow and Shortest Path with the new settings
-			clientThread.invoke(() ->
-			{
-				guidedPatch = null;
-				updateGuidance();
-			});
+			// Point (or clear) the hint arrow and Shortest Path with the new settings
+			clientThread.invoke(this::updateGuidance);
 		}
 	}
 
@@ -362,33 +357,59 @@ public class TreeRunsPlugin extends Plugin
 	private void updateGuidance()
 	{
 		final Patch current = runSession.getCurrent();
-		if (current == guidedPatch && (current == null || hintArrowSet == config.hintArrow()))
+		updateHintArrow(current != null && config.hintArrow() ? current : null);
+
+		// Only message Shortest Path when the destination changes, so it isn't asked to re-path every tick
+		final Patch pathTarget = current != null && config.shortestPath() ? current : null;
+		if (pathTarget != shortestPathPatch)
+		{
+			if (pathTarget != null)
+			{
+				eventBus.post(new PluginMessage(SHORTEST_PATH, "path",
+					Map.<String, Object>of("target", PatchSite.of(pathTarget).getLocation())));
+			}
+			else
+			{
+				eventBus.post(new PluginMessage(SHORTEST_PATH, "clear"));
+			}
+			shortestPathPatch = pathTarget;
+		}
+	}
+
+	/**
+	 * Points the hint arrow at a patch, without ever replacing or clearing an arrow the game set,
+	 * such as a quest arrow on an NPC.
+	 */
+	private void updateHintArrow(@Nullable Patch wanted)
+	{
+		// Our arrow is gone if the game replaced it or cleared it (e.g. on a loading screen)
+		if (hintArrowPatch != null && !isOurHintArrow(hintArrowPatch))
+		{
+			hintArrowPatch = null;
+		}
+		if (wanted == hintArrowPatch)
 		{
 			return;
 		}
-		guidedPatch = current;
 
-		if (hintArrowSet)
+		if (hintArrowPatch != null)
 		{
 			client.clearHintArrow();
-			hintArrowSet = false;
+			hintArrowPatch = null;
 		}
-		if (current != null && config.hintArrow())
+		if (wanted != null && !client.hasHintArrow())
 		{
-			client.setHintArrow(PatchSite.of(current).getLocation());
-			hintArrowSet = true;
+			client.setHintArrow(PatchSite.of(wanted).getLocation());
+			hintArrowPatch = wanted;
 		}
+	}
 
-		if (current != null && config.shortestPath())
-		{
-			eventBus.post(new PluginMessage(SHORTEST_PATH, "path", Map.<String, Object>of("target", PatchSite.of(current).getLocation())));
-			shortestPathSet = true;
-		}
-		else if (shortestPathSet)
-		{
-			eventBus.post(new PluginMessage(SHORTEST_PATH, "clear"));
-			shortestPathSet = false;
-		}
+	private boolean isOurHintArrow(Patch patch)
+	{
+		return client.hasHintArrow()
+			&& client.getHintArrowNpc() == null
+			&& client.getHintArrowPlayer() == null
+			&& PatchSite.of(patch).getLocation().equals(client.getHintArrowPoint());
 	}
 
 	private void loadProfile()

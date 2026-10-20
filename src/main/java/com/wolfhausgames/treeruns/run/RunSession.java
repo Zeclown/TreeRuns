@@ -1,6 +1,6 @@
 /*
  * Gardener payment detection is derived from RuneLite's Time Tracking plugin
- * (BSD 2-Clause). See the third-party notices in LICENSE.
+ * (BSD 2-Clause). See THIRD_PARTY_NOTICES.
  */
 package com.wolfhausgames.treeruns.run;
 
@@ -271,8 +271,9 @@ public class RunSession
 					steps.add(new RunStep("Clear the dead tree with a spade", RunStep.Target.PATCH, Tools.SPADE));
 					break;
 				case DISEASED:
+					// Pruning saves the tree; there's nothing to plant
 					steps.add(new RunStep("Prune the tree with secateurs", RunStep.Target.PATCH, Tools.SECATEURS));
-					break;
+					return steps;
 				case UNKNOWN:
 					steps.add(new RunStep("Look at the patch", RunStep.Target.PATCH));
 					break;
@@ -281,8 +282,8 @@ public class RunSession
 			}
 			if (tree != null)
 			{
-				steps.add(new RunStep("Plant " + itemNames.get(tree.getSaplingItemId()).toLowerCase()
-					+ " (rake weeds first)", RunStep.Target.PATCH, Set.of(tree.getSaplingItemId())));
+				steps.add(new RunStep("Plant " + itemNames.get(tree.getSaplingItemId()).toLowerCase(),
+					RunStep.Target.PATCH, Set.of(tree.getSaplingItemId())));
 			}
 		}
 

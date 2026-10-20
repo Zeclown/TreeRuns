@@ -1,6 +1,6 @@
 /*
  * Gardener NPCs are derived from RuneLite's Time Tracking plugin and patch locations from
- * Quest Helper (both BSD 2-Clause). See the third-party notices in LICENSE.
+ * Quest Helper (both BSD 2-Clause). See THIRD_PARTY_NOTICES.
  */
 package com.wolfhausgames.treeruns.data;
 

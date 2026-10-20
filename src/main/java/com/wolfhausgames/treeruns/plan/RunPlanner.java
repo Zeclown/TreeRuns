@@ -38,7 +38,10 @@ public class RunPlanner
 		this.itemNames = itemNames;
 	}
 
-	/** Patches to visit, in route order. Trees that are still growing are left for a later run. */
+	/**
+	 * Patches to visit, in route order. Trees that are still growing are left for a later run;
+	 * diseased ones are included, since they die unless pruned.
+	 */
 	public List<Patch> getStops()
 	{
 		final List<Patch> stops = new ArrayList<>();
@@ -52,7 +55,7 @@ public class RunPlanner
 		return stops;
 	}
 
-	/** Patches in the plan that are skipped this time because their tree is still growing (or diseased). */
+	/** Patches in the plan that are skipped this time because their tree is still growing. */
 	public List<Patch> getGrowing()
 	{
 		final List<Patch> growing = new ArrayList<>();
@@ -73,6 +76,7 @@ public class RunPlanner
 		final Map<String, Need> needs = new LinkedHashMap<>();
 		int coins = 0;
 		boolean axe = false;
+		boolean secateurs = false;
 
 		for (Patch patch : stops)
 		{
@@ -80,6 +84,14 @@ public class RunPlanner
 			final TreeType tree = plan.getTree();
 			if (tree == null)
 			{
+				continue;
+			}
+
+			final TreeState state = patchTracker.getStatus(patch).getState().getState();
+			if (state == TreeState.DISEASED)
+			{
+				// Pruning saves the tree, so nothing gets planted
+				secateurs = true;
 				continue;
 			}
 
@@ -93,7 +105,7 @@ public class RunPlanner
 			}
 
 			// An empty patch has nothing to remove
-			final boolean hasTree = patchTracker.getStatus(patch).getState().getState() != TreeState.EMPTY;
+			final boolean hasTree = state != TreeState.EMPTY;
 			if (hasTree && patch.isRemovable() && plan.isRemove())
 			{
 				coins += patch.getRemovalCost();
@@ -128,27 +140,28 @@ public class RunPlanner
 		{
 			lines.add(line("Any axe", Tools.AXES, 1, false));
 		}
+		lines.add(line("Secateurs", Tools.SECATEURS, 1, !secateurs));
 		lines.add(line("Rake", Tools.RAKE, 1, true));
-		lines.add(line("Secateurs", Tools.SECATEURS, 1, true));
 		return lines;
 	}
 
 	private boolean isGrowing(Patch patch)
 	{
-		final TreeState state = patchTracker.getStatus(patch).getState().getState();
-		return state == TreeState.GROWING || state == TreeState.DISEASED;
+		return patchTracker.getStatus(patch).getState().getState() == TreeState.GROWING;
 	}
 
 	private ShoppingLine line(String name, Set<Integer> itemIds, int needed, boolean optional)
 	{
 		int carried = 0;
+		int stored = 0;
 		int banked = 0;
 		for (int itemId : itemIds)
 		{
 			carried += itemTracker.getCarriedCount(itemId);
+			stored += itemTracker.getStoredCount(itemId);
 			banked += itemTracker.getBankCount(itemId);
 		}
-		return new ShoppingLine(name, itemIds, needed, carried, banked, optional);
+		return new ShoppingLine(name, itemIds, needed, carried, stored, banked, optional);
 	}
 
 	private static void add(Map<String, Need> needs, String name, Set<Integer> itemIds, int quantity)

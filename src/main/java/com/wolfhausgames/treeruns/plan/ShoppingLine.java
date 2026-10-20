@@ -14,6 +14,8 @@ public class ShoppingLine
 	Set<Integer> itemIds;
 	int needed;
 	int carried;
+	/** Held by the tool leprechaun, which can be reached at most patches. */
+	int stored;
 	int banked;
 	/** Useful but not required, such as a rake for weeds. */
 	boolean optional;
@@ -23,19 +25,25 @@ public class ShoppingLine
 		return carried >= needed;
 	}
 
+	/** Covered by what's carried plus what the tool leprechaun holds. */
+	public boolean isAtHand()
+	{
+		return carried + stored >= needed;
+	}
+
 	public boolean isAvailable()
 	{
-		return carried + banked >= needed;
+		return carried + stored + banked >= needed;
 	}
 
 	public int getMissing()
 	{
-		return Math.max(0, needed - carried - banked);
+		return Math.max(0, needed - carried - stored - banked);
 	}
 
 	/** How many to take out of the bank. */
 	public int getToWithdraw()
 	{
-		return Math.max(0, Math.min(needed - carried, banked));
+		return Math.max(0, Math.min(needed - carried - stored, banked));
 	}
 }

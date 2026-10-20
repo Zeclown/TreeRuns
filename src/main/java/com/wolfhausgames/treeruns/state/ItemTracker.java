@@ -7,14 +7,18 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import net.runelite.api.Client;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.gameval.InventoryID;
+import net.runelite.api.gameval.ItemID;
+import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.game.ItemManager;
 
 /**
- * Counts what the player is carrying (inventory and equipment) and what was in their bank the last time it was opened.
+ * Counts what the player is carrying (inventory and equipment), what the tool leprechaun is storing,
+ * and what was in their bank the last time it was opened.
  * Noted items are counted as their unnoted form, since gardeners accept either.
  */
 @Singleton
@@ -23,17 +27,20 @@ public class ItemTracker
 	private static final String BANK_KEY = "bank";
 	private static final String BANK_SEEN_KEY = "bankSeen";
 
+	private final Client client;
 	private final ItemManager itemManager;
 	private final ConfigManager configManager;
 
 	private volatile Map<Integer, Integer> inventory = Collections.emptyMap();
 	private volatile Map<Integer, Integer> equipment = Collections.emptyMap();
+	private volatile Map<Integer, Integer> toolStore = Collections.emptyMap();
 	private volatile Map<Integer, Integer> bank = Collections.emptyMap();
 	private volatile boolean bankKnown;
 
 	@Inject
-	ItemTracker(ItemManager itemManager, ConfigManager configManager)
+	ItemTracker(Client client, ItemManager itemManager, ConfigManager configManager)
 	{
+		this.client = client;
 		this.itemManager = itemManager;
 		this.configManager = configManager;
 	}
@@ -43,6 +50,7 @@ public class ItemTracker
 	{
 		inventory = Collections.emptyMap();
 		equipment = Collections.emptyMap();
+		toolStore = Collections.emptyMap();
 		bank = deserialize(configManager.getRSProfileConfiguration(TreeRunsPlugin.CONFIG_GROUP, BANK_KEY));
 		bankKnown = configManager.getRSProfileConfiguration(TreeRunsPlugin.CONFIG_GROUP, BANK_SEEN_KEY) != null;
 	}
@@ -81,6 +89,47 @@ public class ItemTracker
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Reads what the tool leprechaun is storing; the counts are account varbits, readable anywhere.
+	 * Must be called on the client thread.
+	 *
+	 * @return whether anything changed
+	 */
+	public boolean refreshToolStore()
+	{
+		final Map<Integer, Integer> stored = new HashMap<>();
+		putIfStored(stored, ItemID.SPADE, client.getVarbitValue(VarbitID.FARMING_TOOLS_SPADE)
+			+ client.getVarbitValue(VarbitID.FARMING_TOOLS_EXTRASPADES));
+		putIfStored(stored, ItemID.RAKE, client.getVarbitValue(VarbitID.FARMING_TOOLS_RAKE)
+			+ client.getVarbitValue(VarbitID.FARMING_TOOLS_EXTRARAKES));
+		// The leprechaun remembers whether the stored secateurs are magic ones
+		final int secateurs = client.getVarbitValue(VarbitID.FARMING_TOOLS_SECATEURS)
+			+ client.getVarbitValue(VarbitID.FARMING_TOOLS_EXTRASECATEURS);
+		final boolean magic = client.getVarbitValue(VarbitID.FARMING_TOOLS_FAIRYSECATEURS) == 1;
+		putIfStored(stored, magic ? ItemID.FAIRY_ENCHANTED_SECATEURS : ItemID.SECATEURS, secateurs);
+
+		if (stored.equals(toolStore))
+		{
+			return false;
+		}
+		toolStore = Collections.unmodifiableMap(stored);
+		return true;
+	}
+
+	/** How many the tool leprechaun is storing. */
+	public int getStoredCount(int itemId)
+	{
+		return toolStore.getOrDefault(itemId, 0);
+	}
+
+	private static void putIfStored(Map<Integer, Integer> stored, int itemId, int quantity)
+	{
+		if (quantity > 0)
+		{
+			stored.put(itemId, quantity);
+		}
 	}
 
 	public boolean isBankKnown()

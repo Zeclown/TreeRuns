@@ -1,4 +1,4 @@
-# Tree Runs
+# Tree Run Planner
 
 Plan your farming tree runs, see exactly what to bring, and get guided patch by patch.
 
@@ -16,6 +16,8 @@ Plan your farming tree runs, see exactly what to bring, and get guided patch by 
 
 **Know what to bring**
 
+![Shopping list](docs/items.png)
+
 - The Items tab adds up the saplings, protection payments, removal coins and tools the run needs.
 - Each line shows whether you're carrying it, how many to take out of the bank, or how many you're missing. Noted payments count.
 - Trees that are still growing are left out until they're ready.
@@ -24,6 +26,8 @@ Plan your farming tree runs, see exactly what to bring, and get guided patch by 
 - Stops start in a sensible order grouped by area. Drag them in the Route tab to make the run your own.
 
 **Get guided**
+
+![Doing a run](docs/run.png)
 
 - **Start run** walks you through each patch: check health, remove the tree, plant, protect.
 - It moves on automatically once you've planted and the gardener has accepted your payment.
@@ -57,4 +61,4 @@ This plugin was built with AI-assisted development using Claude Opus.
 
 ## License
 
-[BSD Zero Clause](LICENSE). Some files adapted from RuneLite and Quest Helper keep their BSD 2-Clause notices; see [LICENSE](LICENSE).
+[BSD 2-Clause](LICENSE). Some files are adapted from RuneLite and Quest Helper; their notices are in [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES).

@@ -3,7 +3,6 @@ package com.wolfhausgames.treeruns;
 import com.wolfhausgames.treeruns.data.Patch;
 import com.wolfhausgames.treeruns.run.RunSession;
 import com.wolfhausgames.treeruns.run.RunStep;
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridLayout;

@@ -1,6 +1,6 @@
 /*
  * Patch regions, varbits and bounds are derived from RuneLite's Time Tracking plugin
- * (BSD 2-Clause). See the third-party notices in LICENSE.
+ * (BSD 2-Clause). See THIRD_PARTY_NOTICES.
  */
 package com.wolfhausgames.treeruns.data;
 
@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.function.Predicate;
 import lombok.AccessLevel;
 import lombok.Getter;
-import net.runelite.api.Client;
 import net.runelite.api.Quest;
 import net.runelite.api.Skill;
 import net.runelite.api.coords.WorldPoint;
@@ -169,19 +168,6 @@ public enum Patch
 			}
 		}
 		return false;
-	}
-
-	/** Must be called on the client thread. */
-	public boolean isUnlocked(Client client)
-	{
-		for (Requirement requirement : requirements)
-		{
-			if (!requirement.isMet(client))
-			{
-				return false;
-			}
-		}
-		return true;
 	}
 
 	public static List<Patch> forKind(PatchKind kind)

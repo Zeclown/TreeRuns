@@ -62,7 +62,7 @@ class TreeRunsPanel extends PluginPanel
 		top.setBackground(ColorScheme.DARK_GRAY_COLOR);
 		top.setBorder(new EmptyBorder(0, 0, 8, 0));
 
-		final JLabel title = new JLabel("Tree Runs");
+		final JLabel title = new JLabel("Tree Run Planner");
 		title.setFont(FontManager.getRunescapeBoldFont());
 		title.setForeground(ColorScheme.BRAND_ORANGE);
 		title.setAlignmentX(Component.LEFT_ALIGNMENT);
