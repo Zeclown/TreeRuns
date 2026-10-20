@@ -60,13 +60,13 @@ public enum Patch
 		Requirement.questCompleted(Quest.CHILDREN_OF_THE_SUN)),
 
 	// Hardwood trees
-	FOSSIL_ISLAND_EAST(PatchKind.HARDWOOD, "Fossil Island (east)", VarbitID.FARMING_TRANSMIT_A, 200,
+	FOSSIL_ISLAND_EAST(PatchKind.HARDWOOD, "Fossil (east)", VarbitID.FARMING_TRANSMIT_A, 200,
 		Regions.FOSSIL_ISLAND, Patch::onFossilIslandSurface,
 		Requirement.questCompleted(Quest.BONE_VOYAGE)),
-	FOSSIL_ISLAND_MIDDLE(PatchKind.HARDWOOD, "Fossil Island (middle)", VarbitID.FARMING_TRANSMIT_B, 200,
+	FOSSIL_ISLAND_MIDDLE(PatchKind.HARDWOOD, "Fossil (middle)", VarbitID.FARMING_TRANSMIT_B, 200,
 		Regions.FOSSIL_ISLAND, Patch::onFossilIslandSurface,
 		Requirement.questCompleted(Quest.BONE_VOYAGE)),
-	FOSSIL_ISLAND_WEST(PatchKind.HARDWOOD, "Fossil Island (west)", VarbitID.FARMING_TRANSMIT_C, 200,
+	FOSSIL_ISLAND_WEST(PatchKind.HARDWOOD, "Fossil (west)", VarbitID.FARMING_TRANSMIT_C, 200,
 		Regions.FOSSIL_ISLAND, Patch::onFossilIslandSurface,
 		Requirement.questCompleted(Quest.BONE_VOYAGE)),
 	// The wiki doesn't state Marcellus's fee; 200 is inferred from the Farming runs page.

@@ -10,18 +10,20 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum TreeState
 {
-	EMPTY("Empty"),
-	GROWING("Growing"),
+	EMPTY("Empty", "Empty"),
+	GROWING("Growing", "Growing"),
 	/** Fully grown and waiting for "Check-health". */
-	READY("Ready to check"),
+	READY("Ready to check health", "Ready"),
 	/** Health has been checked; the tree can be chopped, picked or removed. */
-	CHECKED("Health checked"),
-	STUMP("Stump"),
-	DISEASED("Diseased"),
-	DEAD("Dead"),
-	UNKNOWN("Unknown");
+	CHECKED("Health checked", "Checked"),
+	STUMP("Stump", "Stump"),
+	DISEASED("Diseased", "Diseased"),
+	DEAD("Dead", "Dead"),
+	UNKNOWN("Unknown", "Unknown");
 
 	private final String displayName;
+	/** For the narrow patch rows in the sidebar. */
+	private final String shortName;
 
 	public boolean isFullyGrown()
 	{

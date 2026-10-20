@@ -39,4 +39,9 @@ public final class TrackedItems
 	{
 		return ITEMS.contains(itemId);
 	}
+
+	public static Set<Integer> all()
+	{
+		return ITEMS;
+	}
 }

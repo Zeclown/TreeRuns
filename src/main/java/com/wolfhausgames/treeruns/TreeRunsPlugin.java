@@ -1,5 +1,7 @@
 package com.wolfhausgames.treeruns;
 
+import com.wolfhausgames.treeruns.plan.PlanManager;
+import com.wolfhausgames.treeruns.state.ItemNames;
 import com.wolfhausgames.treeruns.state.ItemTracker;
 import com.wolfhausgames.treeruns.state.PatchTracker;
 import com.wolfhausgames.treeruns.state.UnlockTracker;
@@ -53,6 +55,12 @@ public class TreeRunsPlugin extends Plugin
 
 	@Inject
 	private ItemTracker itemTracker;
+
+	@Inject
+	private ItemNames itemNames;
+
+	@Inject
+	private PlanManager planManager;
 
 	private TreeRunsPanel panel;
 	private NavigationButton navButton;
@@ -161,6 +169,8 @@ public class TreeRunsPlugin extends Plugin
 	{
 		patchTracker.load();
 		itemTracker.load();
+		itemNames.load();
+		planManager.load();
 		ticksUntilUnlockRefresh = 0;
 		panel.refresh();
 	}
