@@ -53,6 +53,8 @@ Plan your farming tree runs, see exactly what to bring, and get guided patch by 
 
 Patch data is adapted from RuneLite's Time Tracking plugin and Quest Helper. Game data is checked against the [OSRS Wiki](https://oldschool.runescape.wiki/).
 
+This plugin was built with AI-assisted development using Claude Opus.
+
 ## License
 
 [BSD Zero Clause](LICENSE). Some files adapted from RuneLite and Quest Helper keep their BSD 2-Clause notices; see [LICENSE](LICENSE).
