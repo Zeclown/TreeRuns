@@ -22,7 +22,15 @@ Quest Helper (https://github.com/Zoinkwiz/quest-helper), tree run helper:
   Copyright (c) 2024, Kerpackie <https://github.com/Kerpackie/>
   All rights reserved.
 
+Quest Helper (https://github.com/Zoinkwiz/quest-helper), bank tab button,
+by way of Farm Run Autopilot below:
+  - bank/RunBankTag.java: the bank title bar button, from QuestBankTabInterface
+
+  Copyright (c) 2020, Zoinkwiz
+  All rights reserved.
+
 Farm Run Autopilot (https://github.com/elzerma/farm-run-autopilot):
+  - bank/RunBankTag.java: the bank title bar button, from FarmBankTabButton
   - run/SceneTracker.java: keeping gardeners across scene loads
   - data/PatchSite.java: gardeners with several NPC IDs
 

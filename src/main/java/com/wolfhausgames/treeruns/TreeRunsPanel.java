@@ -41,7 +41,7 @@ class TreeRunsPanel extends PluginPanel
 	private final JPanel planning = new JPanel(new BorderLayout());
 	private final List<CategorySection> categorySections = new ArrayList<>();
 	private final RoutePanel routePanel;
-	private final ShoppingPanel shoppingPanel;
+	private final ItemsSection itemsSection;
 	private final RunPanel runPanel;
 
 	@Inject
@@ -73,7 +73,7 @@ class TreeRunsPanel extends PluginPanel
 		top.add(bankStatus);
 		add(top, BorderLayout.NORTH);
 
-		// Planning: start button above Plan / Route / Items tabs
+		// Planning: start button above Plan / Route tabs
 		planning.setBackground(ColorScheme.DARK_GRAY_COLOR);
 		startRun.setFont(FontManager.getRunescapeBoldFont());
 		startRun.setFocusPainted(false);
@@ -88,6 +88,8 @@ class TreeRunsPanel extends PluginPanel
 		final JPanel planTab = new JPanel();
 		planTab.setLayout(new BoxLayout(planTab, BoxLayout.Y_AXIS));
 		planTab.setBackground(ColorScheme.DARK_GRAY_COLOR);
+		itemsSection = new ItemsSection(runPlanner, itemTracker, this::update);
+		planTab.add(itemsSection);
 		for (PatchKind kind : PatchKind.values())
 		{
 			final CategorySection section = new CategorySection(kind, planManager, unlockTracker, patchTracker,
@@ -97,12 +99,10 @@ class TreeRunsPanel extends PluginPanel
 		}
 
 		routePanel = new RoutePanel(planManager, runPlanner, this::update);
-		shoppingPanel = new ShoppingPanel(runPlanner, itemTracker);
 
 		final MaterialTab plan = new MaterialTab("Plan", tabs, planTab);
 		tabs.addTab(plan);
 		tabs.addTab(new MaterialTab("Route", tabs, routePanel));
-		tabs.addTab(new MaterialTab("Items", tabs, shoppingPanel));
 		tabs.select(plan);
 
 		final JPanel header = new JPanel(new BorderLayout());
@@ -159,7 +159,7 @@ class TreeRunsPanel extends PluginPanel
 				startRun.setEnabled(stops > 0);
 				categorySections.forEach(CategorySection::update);
 				routePanel.update();
-				shoppingPanel.update();
+				itemsSection.update();
 			}
 		}
 

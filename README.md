@@ -18,9 +18,10 @@ Plan your farming tree runs, see exactly what to bring, and get guided patch by 
 
 ![Shopping list](docs/items.png)
 
-- The Items tab adds up the saplings, protection payments, removal coins and tools the run needs.
+- **Items to bring**, at the top of the Plan tab, adds up the saplings, protection payments, removal coins and tools the run needs.
 - Each line shows whether you're carrying it, how many to take out of the bank, or how many you're missing. Noted payments count.
 - Trees that are still growing are left out until they're ready.
+- In the bank, click the farming button next to the close button to show just the run's items (uses RuneLite's Bank Tags plugin). Click it again to go back.
 
 **Follow the route**
 - Stops start in a sensible order grouped by area. Drag them in the Route tab to make the run your own.
@@ -42,7 +43,7 @@ Plan your farming tree runs, see exactly what to bring, and get guided patch by 
 | Highlight patch | On | Outline the patch you're working on |
 | Highlight gardener | On | Outline the gardener when you need to pay them |
 | Highlight items | On | Outline the inventory item for the current step |
-| Hint arrow | On | Point the game's hint arrow at the current patch |
+| Hint arrow | On | Point the game's hint arrow at the current patch, or its gardener when you need to pay them |
 | Step checklist | On | Show the current patch's steps on screen |
 | Highlight colour | Green | Colour of all outlines |
 | Shortest Path integration | Off | Send the next patch to the Shortest Path plugin |
@@ -50,15 +51,15 @@ Plan your farming tree runs, see exactly what to bring, and get guided patch by 
 ## Notes
 
 - The game only sends a patch's state while you're near it. Growth times are estimated from when you last saw each patch and can't account for disease while you're away.
-- Open your bank once so the Items tab knows what you have stored.
+- Open your bank once so Items to bring knows what you have stored.
 - Plans, routes and patch states are saved per account.
 
 ## Credits
 
-Patch data is adapted from RuneLite's Time Tracking plugin and Quest Helper. Game data is checked against the [OSRS Wiki](https://oldschool.runescape.wiki/).
+Patch data is adapted from RuneLite's Time Tracking plugin and Quest Helper. The bank button and gardener tracking are adapted from [Farm Run Autopilot](https://github.com/elzerma/farm-run-autopilot) by elzerma. Game data is checked against the [OSRS Wiki](https://oldschool.runescape.wiki/).
 
 This plugin was built with AI-assisted development using Claude Opus.
 
 ## License
 
-[BSD 2-Clause](LICENSE). Some files are adapted from RuneLite and Quest Helper; their notices are in [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES).
+[BSD 2-Clause](LICENSE). Some files are adapted from RuneLite, Quest Helper and Farm Run Autopilot; their notices are in [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES).

@@ -1,6 +1,7 @@
 package com.wolfhausgames.treeruns;
 
 import com.google.inject.Provides;
+import com.wolfhausgames.treeruns.bank.RunBankTag;
 import com.wolfhausgames.treeruns.data.Patch;
 import com.wolfhausgames.treeruns.data.PatchSite;
 import com.wolfhausgames.treeruns.plan.PlanManager;
@@ -46,7 +47,9 @@ import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.PluginMessage;
 import net.runelite.client.events.RuneScapeProfileChanged;
 import net.runelite.client.plugins.Plugin;
+import net.runelite.client.plugins.PluginDependency;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.banktags.BankTagsPlugin;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -58,6 +61,7 @@ import net.runelite.client.util.ImageUtil;
 	description = "Plan and follow customizable farming tree runs",
 	tags = {"farming", "tree", "run", "helper"}
 )
+@PluginDependency(BankTagsPlugin.class)
 public class TreeRunsPlugin extends Plugin
 {
 	public static final String CONFIG_GROUP = "treeruns";
@@ -118,6 +122,9 @@ public class TreeRunsPlugin extends Plugin
 	@Inject
 	private RunItemOverlay itemOverlay;
 
+	@Inject
+	private RunBankTag runBankTag;
+
 	private TreeRunsPanel panel;
 	private NavigationButton navButton;
 	private int ticksUntilUnlockRefresh;
@@ -163,6 +170,8 @@ public class TreeRunsPlugin extends Plugin
 		overlayManager.add(highlightOverlay);
 		overlayManager.add(stepOverlay);
 		overlayManager.add(itemOverlay);
+		runBankTag.startUp();
+		eventBus.register(runBankTag);
 
 		clientThread.invoke(() ->
 		{
@@ -182,7 +191,9 @@ public class TreeRunsPlugin extends Plugin
 		{
 			runSession.end();
 			updateGuidance();
+			runBankTag.shutDown();
 		});
+		eventBus.unregister(runBankTag);
 		overlayManager.remove(highlightOverlay);
 		overlayManager.remove(stepOverlay);
 		overlayManager.remove(itemOverlay);
