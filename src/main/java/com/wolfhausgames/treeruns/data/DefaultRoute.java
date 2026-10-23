@@ -22,8 +22,8 @@ public final class DefaultRoute
 		Patch.KASTORI_CALQUAT,
 		Patch.LOCUS_OASIS_HARDWOOD,
 		// Asgarnia and Misthalin
-		Patch.TAVERLEY_TREE,
 		Patch.FALADOR_TREE,
+		Patch.TAVERLEY_TREE,
 		Patch.PORT_SARIM_SPIRIT,
 		Patch.LUMBRIDGE_TREE,
 		Patch.VARROCK_TREE,
