@@ -22,7 +22,14 @@ Quest Helper (https://github.com/Zoinkwiz/quest-helper), tree run helper:
   Copyright (c) 2024, Kerpackie <https://github.com/Kerpackie/>
   All rights reserved.
 
-Both are distributed under the following terms:
+Farm Run Autopilot (https://github.com/elzerma/farm-run-autopilot):
+  - run/SceneTracker.java: keeping gardeners across scene loads
+  - data/PatchSite.java: gardeners with several NPC IDs
+
+  Copyright (c) 2026, elzerma
+  All rights reserved.
+
+All are distributed under the following terms:
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:

@@ -8,6 +8,7 @@ import com.wolfhausgames.treeruns.plan.RunPlanner;
 import com.wolfhausgames.treeruns.run.RunHighlightOverlay;
 import com.wolfhausgames.treeruns.run.RunItemOverlay;
 import com.wolfhausgames.treeruns.run.RunSession;
+import com.wolfhausgames.treeruns.run.RunStep;
 import com.wolfhausgames.treeruns.run.RunStepOverlay;
 import com.wolfhausgames.treeruns.run.SceneTracker;
 import com.wolfhausgames.treeruns.state.ItemNames;
@@ -15,13 +16,16 @@ import com.wolfhausgames.treeruns.state.ItemTracker;
 import com.wolfhausgames.treeruns.state.PatchTracker;
 import com.wolfhausgames.treeruns.state.UnlockTracker;
 import java.awt.image.BufferedImage;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.NPC;
 import net.runelite.api.Player;
 import net.runelite.api.Skill;
 import net.runelite.api.coords.WorldPoint;
@@ -117,10 +121,21 @@ public class TreeRunsPlugin extends Plugin
 	private TreeRunsPanel panel;
 	private NavigationButton navButton;
 	private int ticksUntilUnlockRefresh;
-
-	/** The patch this plugin's hint arrow points at, or null if the arrow isn't ours. */
+	/** Where the player was on the previous tick, or null after a loading screen. */
 	@Nullable
-	private Patch hintArrowPatch;
+	private WorldPoint lastTickLocation;
+	/**
+	 * Whether the farming varbits describe the patches here. They're only updated the tick after
+	 * entering a new region, so until then they can still hold the previous region's patch.
+	 */
+	private boolean patchesSettled;
+
+	/** The tile this plugin's hint arrow points at, or null if it isn't pointing at a tile. */
+	@Nullable
+	private WorldPoint hintArrowPoint;
+	/** The gardener this plugin's hint arrow points at, or null if it isn't pointing at one. */
+	@Nullable
+	private NPC hintArrowNpc;
 	/** The patch Shortest Path was last sent to, or null if it hasn't been sent one. */
 	@Nullable
 	private Patch shortestPathPatch;
@@ -233,10 +248,15 @@ public class TreeRunsPlugin extends Plugin
 				ticksUntilUnlockRefresh = 0;
 				break;
 			case LOADING:
-				// Objects and NPCs spawn again once the new scene is loaded
+				// Objects spawn again once the new scene is loaded; NPCs still in range don't
+				sceneTracker.clearObjects();
+				lastTickLocation = null;
+				break;
+			case HOPPING:
 				sceneTracker.clear();
 				break;
 			case LOGIN_SCREEN:
+				sceneTracker.clear();
 				unlockTracker.clear();
 				panel.refresh();
 				break;
@@ -259,12 +279,20 @@ public class TreeRunsPlugin extends Plugin
 		}
 
 		final Player player = client.getLocalPlayer();
+		final WorldPoint previous = lastTickLocation;
+		lastTickLocation = player == null ? null : player.getWorldLocation();
+		// The same check as RuneLite's Time Tracking plugin
+		patchesSettled = previous != null && lastTickLocation != null
+			&& previous.getRegionID() == lastTickLocation.getRegionID();
 		if (player != null)
 		{
 			final WorldPoint location = player.getWorldLocation();
-			changed |= patchTracker.update(location);
+			if (patchesSettled)
+			{
+				changed |= patchTracker.update(location);
+			}
 			changed |= itemTracker.refreshToolStore();
-			if (runSession.isActive() && runSession.onTick(location))
+			if (runSession.isActive() && runSession.onTick(location, patchesSettled))
 			{
 				changed = true;
 			}
@@ -344,7 +372,7 @@ public class TreeRunsPlugin extends Plugin
 		final Player player = client.getLocalPlayer();
 		if (player != null && runSession.isActive())
 		{
-			runSession.onTick(player.getWorldLocation());
+			runSession.onTick(player.getWorldLocation(), patchesSettled);
 		}
 		updateGuidance();
 		panel.refresh();
@@ -377,39 +405,73 @@ public class TreeRunsPlugin extends Plugin
 	}
 
 	/**
-	 * Points the hint arrow at a patch, without ever replacing or clearing an arrow the game set,
-	 * such as a quest arrow on an NPC.
+	 * Points the hint arrow at a patch, or at its gardener when the current step is to pay them,
+	 * without ever replacing or clearing an arrow the game set, such as a quest arrow on an NPC.
 	 */
 	private void updateHintArrow(@Nullable Patch wanted)
 	{
-		// Our arrow is gone if the game replaced it or cleared it (e.g. on a loading screen)
-		if (hintArrowPatch != null && !isOurHintArrow(hintArrowPatch))
+		NPC wantedNpc = null;
+		WorldPoint wantedPoint = null;
+		if (wanted != null)
 		{
-			hintArrowPatch = null;
+			final RunStep step = runSession.getCurrentStep();
+			final List<NPC> gardeners = step != null && step.getTarget() == RunStep.Target.GARDENER
+				? sceneTracker.getGardeners(wanted) : List.of();
+			if (gardeners.isEmpty())
+			{
+				wantedPoint = PatchSite.of(wanted).getLocation();
+			}
+			else
+			{
+				wantedNpc = gardeners.get(0);
+			}
 		}
-		if (wanted == hintArrowPatch)
+
+		// Our arrow is gone if the game replaced it or cleared it (e.g. on a loading screen)
+		if ((hintArrowPoint != null || hintArrowNpc != null) && !isOurHintArrow())
+		{
+			hintArrowPoint = null;
+			hintArrowNpc = null;
+		}
+		if (wantedNpc == hintArrowNpc && Objects.equals(wantedPoint, hintArrowPoint))
 		{
 			return;
 		}
 
-		if (hintArrowPatch != null)
+		if (hintArrowPoint != null || hintArrowNpc != null)
 		{
 			client.clearHintArrow();
-			hintArrowPatch = null;
+			hintArrowPoint = null;
+			hintArrowNpc = null;
 		}
-		if (wanted != null && !client.hasHintArrow())
+		if (client.hasHintArrow())
 		{
-			client.setHintArrow(PatchSite.of(wanted).getLocation());
-			hintArrowPatch = wanted;
+			return;
+		}
+		if (wantedNpc != null)
+		{
+			client.setHintArrow(wantedNpc);
+			hintArrowNpc = wantedNpc;
+		}
+		else if (wantedPoint != null)
+		{
+			client.setHintArrow(wantedPoint);
+			hintArrowPoint = wantedPoint;
 		}
 	}
 
-	private boolean isOurHintArrow(Patch patch)
+	private boolean isOurHintArrow()
 	{
-		return client.hasHintArrow()
-			&& client.getHintArrowNpc() == null
-			&& client.getHintArrowPlayer() == null
-			&& PatchSite.of(patch).getLocation().equals(client.getHintArrowPoint());
+		if (!client.hasHintArrow() || client.getHintArrowPlayer() != null)
+		{
+			return false;
+		}
+		if (hintArrowNpc != null)
+		{
+			return client.getHintArrowNpc() == hintArrowNpc;
+		}
+		return client.getHintArrowNpc() == null && hintArrowPoint != null
+			&& hintArrowPoint.equals(client.getHintArrowPoint());
 	}
 
 	private void loadProfile()

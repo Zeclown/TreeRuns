@@ -152,18 +152,19 @@ public class RunSession
 	 * Checks the current stop's patch and the chat box. Must be called on the client thread
 	 * after the patch tracker has been updated.
 	 *
+	 * @param patchesSettled whether the farming varbits describe the patches here yet
 	 * @return whether the current stop or its steps changed
 	 */
-	public synchronized boolean onTick(WorldPoint playerLocation)
+	public synchronized boolean onTick(WorldPoint playerLocation, boolean patchesSettled)
 	{
 		final int before = index;
 		final List<RunStep> beforeSteps = steps;
-		update(playerLocation);
+		update(playerLocation, patchesSettled);
 		steps = computeSteps(playerLocation);
 		return index != before || !steps.equals(beforeSteps);
 	}
 
-	private void update(WorldPoint playerLocation)
+	private void update(WorldPoint playerLocation, boolean patchesSettled)
 	{
 		final Patch current = getCurrent();
 		if (current == null)
@@ -174,9 +175,10 @@ public class RunSession
 		detectProtection();
 
 		final Progress p = progress.get(current);
-		if (current.isTransmittedAt(playerLocation))
+		if (patchesSettled && current.isTransmittedAt(playerLocation))
 		{
-			final TreeState state = patchTracker.getStatus(current).getState().getState();
+			// What the game shows now, not an estimate of growth since the patch was last seen
+			final TreeState state = patchTracker.getSeenState(current);
 			if (state == TreeState.GROWING)
 			{
 				if (p.sawUnplanted && !p.sawDiseased)
@@ -186,6 +188,7 @@ public class RunSession
 				else if (!p.planted)
 				{
 					// Growing since we arrived: someone planted it before the run, or it recovered from disease
+					log.debug("{} was already growing", current);
 					p.alreadyGrowing = true;
 				}
 			}

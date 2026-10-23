@@ -1,3 +1,7 @@
+/*
+ * Keeping gardeners across scene loads is adapted from Farm Run Autopilot (BSD 2-Clause).
+ * See THIRD_PARTY_NOTICES.
+ */
 package com.wolfhausgames.treeruns.run;
 
 import com.wolfhausgames.treeruns.data.Patch;
@@ -80,8 +84,17 @@ public class SceneTracker
 
 	public void clear()
 	{
-		patchObjects.clear();
+		clearObjects();
 		gardeners.clear();
+	}
+
+	/**
+	 * Forgets the patch objects, which spawn again when a scene loads. Gardeners still in range
+	 * don't spawn again, so they're kept.
+	 */
+	public void clearObjects()
+	{
+		patchObjects.clear();
 	}
 
 	/** Picks up everything already loaded, for when the plugin starts while logged in. */

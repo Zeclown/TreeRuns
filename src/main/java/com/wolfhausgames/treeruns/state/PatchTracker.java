@@ -133,6 +133,14 @@ public class PatchTracker
 		return changed;
 	}
 
+	/** The state the game last sent for the patch, without estimating growth since. Safe to call from any thread. */
+	public TreeState getSeenState(Patch patch)
+	{
+		final PatchRecord record = records.get(patch);
+		return record == null ? TreeState.UNKNOWN
+			: PatchStateDecoder.decode(patch.getKind(), record.getVarbitValue()).getState();
+	}
+
 	/** The patch's estimated status right now. Safe to call from any thread. */
 	public PatchStatus getStatus(Patch patch)
 	{

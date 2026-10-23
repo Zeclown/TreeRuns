@@ -1,6 +1,7 @@
 /*
  * Gardener NPCs are derived from RuneLite's Time Tracking plugin and patch locations from
- * Quest Helper (both BSD 2-Clause). See THIRD_PARTY_NOTICES.
+ * Quest Helper, and gardeners with several IDs noted from Farm Run Autopilot (all BSD 2-Clause).
+ * See THIRD_PARTY_NOTICES.
  */
 package com.wolfhausgames.treeruns.data;
 
@@ -23,7 +24,9 @@ public class PatchSite
 	static
 	{
 		add(Patch.LUMBRIDGE_TREE, 3193, 3231, NpcID.FARMING_GARDENER_TREE_4);
-		add(Patch.VARROCK_TREE, 3229, 3459, NpcID.FARMING_GARDENER_TREE_3_02);
+		// Treznor has a different ID depending on Varrock quest progress
+		add(Patch.VARROCK_TREE, 3229, 3459, NpcID.FARMING_GARDENER_TREE_3, NpcID.FARMING_GARDENER_TREE_3_02,
+			NpcID.DOV_TREZNOR);
 		add(Patch.FALADOR_TREE, 3004, 3373, NpcID.FARMING_GARDENER_TREE_2);
 		add(Patch.TAVERLEY_TREE, 2936, 3438, NpcID.FARMING_GARDENER_TREE_1);
 		add(Patch.GNOME_STRONGHOLD_TREE, 2436, 3415, NpcID.FARMING_GARDENER_TREE_GNOME);
@@ -41,7 +44,8 @@ public class PatchSite
 		add(Patch.FOSSIL_ISLAND_EAST, 3715, 3835, NpcID.FOSSIL_SQUIRREL_GARDENER1);
 		add(Patch.FOSSIL_ISLAND_MIDDLE, 3708, 3833, NpcID.FOSSIL_SQUIRREL_GARDENER2);
 		add(Patch.FOSSIL_ISLAND_WEST, 3702, 3837, NpcID.FOSSIL_SQUIRREL_GARDENER3);
-		add(Patch.LOCUS_OASIS_HARDWOOD, 1687, 2972, NpcID.FROG_QUEST_MARCELLUS, NpcID.FROG_QUEST_MARCELLUS_FARMER);
+		add(Patch.LOCUS_OASIS_HARDWOOD, 1687, 2972, NpcID.FROG_QUEST_MARCELLUS, NpcID.FROG_QUEST_MARCELLUS_NORMAL,
+			NpcID.FROG_QUEST_MARCELLUS_FARMER);
 		add(Patch.ANGLERS_RETREAT_HARDWOOD, 2470, 2704, NpcID.FARMING_GARDENER_HARDWOOD_TREE_5);
 
 		add(Patch.TAI_BWO_WANNAI_CALQUAT, 2795, 3102, NpcID.FARMING_GARDENER_CALQUAT);
