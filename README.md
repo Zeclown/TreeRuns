@@ -1,4 +1,4 @@
-# Tree Run Planner
+# Tree Runs
 
 Plan your farming tree runs, see exactly what to bring, and get guided patch by patch.
 

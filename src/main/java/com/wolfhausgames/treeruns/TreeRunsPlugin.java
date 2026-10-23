@@ -50,7 +50,7 @@ import net.runelite.client.util.ImageUtil;
 
 @Slf4j
 @PluginDescriptor(
-	name = "Tree Run Planner",
+	name = "Tree Runs",
 	description = "Plan and follow customizable farming tree runs",
 	tags = {"farming", "tree", "run", "helper"}
 )
@@ -138,7 +138,7 @@ public class TreeRunsPlugin extends Plugin
 
 		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "icon.png");
 		navButton = NavigationButton.builder()
-			.tooltip("Tree Run Planner")
+			.tooltip("Tree Runs")
 			.icon(icon)
 			.priority(7)
 			.panel(panel)
@@ -157,7 +157,7 @@ public class TreeRunsPlugin extends Plugin
 				sceneTracker.scan();
 			}
 		});
-		log.debug("Tree Run Planner started");
+		log.debug("Tree Runs started");
 	}
 
 	@Override
@@ -175,7 +175,7 @@ public class TreeRunsPlugin extends Plugin
 		sceneTracker.clear();
 		unlockTracker.clear();
 		navButton = null;
-		log.debug("Tree Run Planner stopped");
+		log.debug("Tree Runs stopped");
 	}
 
 	/** Starts a run over the current stops. Safe to call from any thread. */
